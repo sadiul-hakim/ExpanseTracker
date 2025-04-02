@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import xyz.sadiulhakim.role.Role;
@@ -26,10 +28,14 @@ public class User {
 	private Long id;
 
 	@Size(min = 2, max = 55, message = "Name must be between 2 to 55 characters")
+	@NotNull(message = "FullName can not be null.")
+	@NotBlank(message = "FullName can not be blank.")
 	@Column(length = 55, nullable = false)
 	private String fullName;
 
 	@Email(message = "Must be a valid mail")
+	@NotNull(message = "Email can not be null.")
+	@NotBlank(message = "Email can not be blank.")
 	@Size(min = 10, max = 75, message = "Mail must be between 10 to 75 characters")
 	@Column(length = 75, nullable = false, unique = true)
 	private String email;
@@ -37,6 +43,8 @@ public class User {
 	@Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$", message = "Password must be at least 8 characters long and include: \" +\r\n"
 			+ "              \"1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@$!%*?&).")
 	@Size(min = 8, message = "Password must be at least 8 characters")
+	@NotNull(message = "Password can not be null.")
+	@NotBlank(message = "Password can not be blank.")
 	@Column(length = 100, nullable = false)
 	private String password;
 

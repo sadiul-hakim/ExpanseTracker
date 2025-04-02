@@ -24,9 +24,9 @@ public class SecurityConfig {
     SecurityFilterChain config(HttpSecurity http) throws Exception {
 
         String[] permittedEndpoints = {
-                "/", "/login",
+                "/login",
                 "/refreshToken",
-                "/csrf", "/validate-token"
+                "/validate-token"
         };
 
         return http

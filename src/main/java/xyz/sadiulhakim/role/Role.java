@@ -2,11 +2,14 @@ package xyz.sadiulhakim.role;
 
 import java.util.Objects;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
@@ -17,11 +20,14 @@ public class Role {
 	private Long id;
 
 	@Column(length = 45, nullable = false)
+	@NotNull(message = "Name can not be null.")
+	@NotBlank(message = "Name can not be blank.")
 	@Size(min = 6, max = 45, message = "name must be between 6 to 45 characters")
 	private String name;
 
 	@Column(length = 45)
-	@Size(min = 20, max = 100, message = "description must be between 20 to 100 characters")
+	@Nullable
+	@Size(min = 0, max = 100, message = "description must be between 20 to 100 characters")
 	private String description;
 
 	public Role() {

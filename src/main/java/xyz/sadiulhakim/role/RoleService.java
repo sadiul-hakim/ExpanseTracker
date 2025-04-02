@@ -1,5 +1,7 @@
 package xyz.sadiulhakim.role;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,5 +36,15 @@ public class RoleService {
 		LOGGER.info("Finding role by id {}", id);
 		return roleRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Role is not found with id " + id));
+	}
+
+	public List<Role> findAll() {
+		return roleRepository.findAll();
+	}
+
+	public void delete(long id) {
+		LOGGER.info("Deleting role {}", id);
+		roleRepository.deleteById(id);
+		LOGGER.info("Done deleting role {}", id);
 	}
 }
