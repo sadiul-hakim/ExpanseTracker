@@ -8,12 +8,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import xyz.sadiulhakim.role.Role;
 
 @Entity
 @Table(name = "application_user")
@@ -32,28 +34,29 @@ public class User {
 	@Column(length = 75, nullable = false, unique = true)
 	private String email;
 
-	@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.")
-	@Size(min = 8, max = 16, message = "Password must be between 8 to 16 characters")
+	@Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$", message = "Password must be at least 8 characters long and include: \" +\r\n"
+			+ "              \"1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@$!%*?&).")
+	@Size(min = 8, message = "Password must be at least 8 characters")
 	@Column(length = 100, nullable = false)
 	private String password;
 
-	@Size(min = 6, max = 55, message = "Role must be between 6 to 55 characters")
-	@Column(length = 55, nullable = false)
-	private String role;
+	@ManyToOne
+	private Role role;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime joiningDate;
 
 	public User(Long id, @Size(min = 2, max = 55, message = "Name must be between 2 to 55 characters") String fullName,
 			@Email(message = "Must be a valid mail") @Size(min = 10, max = 75, message = "Mail must be between 10 to 75 characters") String email,
-			@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "Password must be at least 8 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.") @Size(min = 8, max = 16, message = "Password must be between 8 to 16 characters") String password,
-			@Size(min = 6, max = 55, message = "Role must be between 6 to 55 characters") String role,
-			LocalDateTime joiningDate) {
+			@Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&]).{8,}$", message = "Password must be at least 8 characters long and include: \" +\r\n"
+					+ "              \"1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (@$!%*?&).") @Size(min = 8, message = "Password must be at least 8 characters") String password,
+			Role role, LocalDateTime joiningDate) {
 		super();
 		this.id = id;
 		this.fullName = fullName;
 		this.email = email;
 		this.password = password;
+		this.role = role;
 		this.joiningDate = joiningDate;
 	}
 
@@ -101,11 +104,11 @@ public class User {
 		this.joiningDate = joiningDate;
 	}
 
-	public String getRole() {
+	public Role getRole() {
 		return role;
 	}
 
-	public void setRole(String role) {
+	public void setRole(Role role) {
 		this.role = role;
 	}
 
