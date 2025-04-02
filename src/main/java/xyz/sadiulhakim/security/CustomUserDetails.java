@@ -11,6 +11,8 @@ import xyz.sadiulhakim.user.User;
 
 public class CustomUserDetails implements UserDetails {
 
+	private static final long serialVersionUID = 4122781049189191403L;
+	
 	private String username;
 	private String password;
 	private String role;

@@ -44,7 +44,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                                             Authentication authentication) {
 
         // Extract the authenticated user.
-        var user = (User) authentication.getPrincipal();
+        var user = (CustomUserDetails) authentication.getPrincipal();
 
         // Generate access and refresh tokens
         // Access token has all the authority information while refresh token does not.
