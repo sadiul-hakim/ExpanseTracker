@@ -17,40 +17,41 @@ import xyz.sadiulhakim.user.UserRepository;
 @Component
 public class ApplicationListener {
 
-	private final UserRepository userRepository;
-	private final RoleRepository roleRepository;
-	private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-	public ApplicationListener(UserRepository userRepository, RoleRepository roleRepository,
-			PasswordEncoder passwordEncoder) {
-		super();
-		this.userRepository = userRepository;
-		this.roleRepository = roleRepository;
-		this.passwordEncoder = passwordEncoder;
-	}
+    public ApplicationListener(UserRepository userRepository, RoleRepository roleRepository,
+                               PasswordEncoder passwordEncoder) {
+        super();
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-	@Async("defaultTaskExecutor")
-	@EventListener
-	void serverStarted(WebServerInitializedEvent event) {
-		System.out.println("Server is running on port : " + event.getWebServer().getPort());
-	}
+    @Async("defaultTaskExecutor")
+    @EventListener
+    void serverStarted(WebServerInitializedEvent event) {
+        System.out.println("Server is running on port : " + event.getWebServer().getPort());
+    }
 
-	@Async("defaultTaskExecutor")
-	@EventListener
-	void applicationReady(ApplicationReadyEvent event) {
+    @Async("defaultTaskExecutor")
+    @EventListener
+    void applicationReady(ApplicationReadyEvent event) {
+        System.out.printf("Server started in %s sec\n", event.getTimeTaken().toMillis() / 1000.0);
 
-		var adminRole = roleRepository.findByName("ROLE_ADMIN").orElse(null);
-		if (adminRole == null) {
-			roleRepository.save(new Role(null, "ROLE_ADMIN", null));
-		}
+        var adminRole = roleRepository.findByName("ROLE_ADMIN").orElse(null);
+        if (adminRole == null) {
+            roleRepository.save(new Role(null, "ROLE_ADMIN", null));
+        }
 
-		var hakim = userRepository.findByEmail("sadiulhakim@gmail.com").orElse(null);
-		if (hakim == null) {
+        var hakim = userRepository.findByEmail("sadiulhakim@gmail.com").orElse(null);
+        if (hakim == null) {
 
-			var role = roleRepository.findByName("ROLE_ADMIN").orElse(null);
-			var user = new User(null, "Sadiul Hakim", "sadiulhakim@gmail.com", "Hakim@123", role, LocalDateTime.now());
-			user.setPassword(passwordEncoder.encode(user.getPassword()));
-			userRepository.save(user);
-		}
-	}
+            var role = roleRepository.findByName("ROLE_ADMIN").orElse(null);
+            var user = new User(null, "Sadiul Hakim", "sadiulhakim@gmail.com", "Hakim@123", role, LocalDateTime.now());
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+        }
+    }
 }
