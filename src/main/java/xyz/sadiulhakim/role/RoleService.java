@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -38,8 +40,9 @@ public class RoleService {
 				.orElseThrow(() -> new EntityNotFoundException("Role is not found with id " + id));
 	}
 
-	public List<Role> findAll() {
-		return roleRepository.findAll();
+	@RateLimiter(name = "defaultRateLimiter")
+	public List<Role> findAll(int pageNumber,int pageSize) {
+		return roleRepository.findAll(PageRequest.of(pageNumber, pageSize)).getContent();
 	}
 
 	public void delete(long id) {

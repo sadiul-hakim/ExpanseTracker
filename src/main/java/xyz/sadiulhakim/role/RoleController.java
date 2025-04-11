@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -31,8 +32,9 @@ public class RoleController {
 	}
 
 	@GetMapping
-	ResponseEntity<List<Role>> findAllRoles() {
-		var all = roleService.findAll();
+	ResponseEntity<List<Role>> findAllRoles(@RequestParam(defaultValue = "0") int pageNumber,
+			@RequestParam(defaultValue = "200") int pageSize) {
+		var all = roleService.findAll(pageNumber,pageSize);
 		return ResponseEntity.ok(all);
 	}
 

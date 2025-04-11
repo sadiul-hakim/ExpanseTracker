@@ -1,35 +1,51 @@
 package xyz.sadiulhakim.user;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import xyz.sadiulhakim.exception.EntityNotFoundExecption;
+import xyz.sadiulhakim.role.RoleService;
 
 @Service
 public class UserService {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
+	
+	private static final String USER_ROLE = "ROLE_USER";
 
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final RoleService roleService;
 
-	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+	public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleService roleService) {
+		super();
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
+		this.roleService = roleService;
 	}
-	
+
 	public void save(User user) {
 
 		LOGGER.info("Saving user {}", user.getEmail());
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
+		user.setJoiningDate(LocalDateTime.now());
+		
+		// Set role to ROLE_USER by default
+		var userRole = roleService.findByName(USER_ROLE);
+		user.setRole(userRole);
+		
 		userRepository.save(user);
 		LOGGER.info("Done saving user {}", user.getEmail());
 	}
 
 	public User findByEmail(String email) {
-		
 		LOGGER.info("Finding user by email {}", email);
 
 		// Do not make an endPoint for this method as it displays the password
@@ -40,7 +56,7 @@ public class UserService {
 	}
 
 	public User findById(long id) {
-		
+
 		LOGGER.info("Finding user by id {}", id);
 
 		var user = userRepository.findById(id)
@@ -50,5 +66,12 @@ public class UserService {
 		// Do not display the password
 		user.setPassword(null);
 		return user;
+	}
+
+	@RateLimiter(name = "defaultRateLimiter")
+	public List<User> findAll(int pageNumber, int pageSize) {
+		var users = userRepository.findAll(PageRequest.of(pageNumber, pageSize)).getContent();
+		users.forEach(user -> user.setPassword(null));
+		return users;
 	}
 }
