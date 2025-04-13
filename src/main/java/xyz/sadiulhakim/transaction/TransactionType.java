@@ -1,0 +1,27 @@
+package xyz.sadiulhakim.transaction;
+
+public enum TransactionType {
+	INCOME(1,"Income"),
+	COST(2,"Cost");
+	
+	private final int id;
+	private final String name;
+	private TransactionType(int id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+	public int getId() {
+		return id;
+	}
+	public String getName() {
+		return name;
+	}
+	
+	public static TransactionType getById(int id) {
+		for(var type : values()) {
+			if(type.getId() == id)
+				return type;
+		}
+		return null;
+	}
+}
