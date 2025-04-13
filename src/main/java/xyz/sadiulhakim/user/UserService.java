@@ -2,6 +2,7 @@ package xyz.sadiulhakim.user;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ import xyz.sadiulhakim.role.RoleService;
 public class UserService {
 
 	private final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
-	
+
 	private static final String USER_ROLE = "ROLE_USER";
 
 	private final UserRepository userRepository;
@@ -36,11 +37,11 @@ public class UserService {
 		LOGGER.info("Saving user {}", user.getEmail());
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		user.setJoiningDate(LocalDateTime.now());
-		
+
 		// Set role to ROLE_USER by default
 		var userRole = roleService.findByName(USER_ROLE);
 		user.setRole(userRole);
-		
+
 		userRepository.save(user);
 		LOGGER.info("Done saving user {}", user.getEmail());
 	}
@@ -73,5 +74,35 @@ public class UserService {
 		var users = userRepository.findAll(PageRequest.of(pageNumber, pageSize)).getContent();
 		users.forEach(user -> user.setPassword(null));
 		return users;
+	}
+
+	public void assignRoleToUser(long userId, long roleId) {
+		var role = roleService.findById(roleId);
+		var user = findById(userId);
+		
+		user.setRole(role);
+		save(user);
+	}
+	
+	public String changePassword(long userId, ChangePasswordPojo pojo) {
+		
+		if(!Objects.equals(pojo.newPassword(), pojo.confirmPassword())) {
+			return "Passwords must match!";
+		}
+		
+		var user = findById(userId);
+		var matches = passwordEncoder.matches(pojo.currentPassword(), user.getPassword());
+		if(!matches) {
+			return "Invalid credentials!";
+		}
+		
+		user.setPassword(passwordEncoder.encode(pojo.newPassword()));
+		save(user);
+		return "";
+	}
+
+	public void delete(long userId) {
+		var user = findById(userId);
+		userRepository.delete(user);
 	}
 }

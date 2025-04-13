@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import io.jsonwebtoken.ExpiredJwtException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -38,4 +38,9 @@ public class GlobalExceptionHandler {
 		exception.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 		return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(ExpiredJwtException.class)
+    ResponseEntity<Map<String, String>> handleExpiredJwtException(ExpiredJwtException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Jwt token has been expired!"));
+    }
 }
