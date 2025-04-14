@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.EntityNotFoundException;
 import xyz.sadiulhakim.user.UserService;
 
 @Service
@@ -57,5 +58,15 @@ public class TransactionService {
 		var typeEnum = TransactionType.get(type);
 		var currencyEnum = Currency.get(currency);
 		return repository.findByTimeBetweenAndCurrencyAndUserAndType(time1, time2, currencyEnum, user, typeEnum);
+	}
+
+	public Transaction findById(long id) {
+		return repository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Transaction is not found with id " + id));
+	}
+	
+	public void delete(long id) {
+		var transaction = findById(id);
+		repository.delete(transaction);
 	}
 }
