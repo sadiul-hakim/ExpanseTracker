@@ -1,8 +1,12 @@
 package xyz.sadiulhakim.transaction;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -19,54 +23,101 @@ public class TransactionService {
 	}
 
 	public void save(TransactionDTO dto) {
-		var user = userService.findById(dto.userId());
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+
 		var type = TransactionType.get(dto.type());
 		var currency = Currency.get(dto.currency());
 		var transaction = new Transaction(user, dto.amount(), type, currency, LocalDateTime.now());
 		repository.save(transaction);
 	}
 
-	public List<Transaction> findAllTransactionsOfUser(long userId) {
-		var user = userService.findById(userId);
-		return repository.findAllByUser(user);
+	public List<TransactionDTO> findAllTransactionsOfUser(int pageNumber, int pageSize) {
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+		var transactions = repository.findAllByUser(user, PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
 	}
 
-	public List<Transaction> findAllTransactionsOfUserByType(long userId, String type) {
-		var user = userService.findById(userId);
+	public List<TransactionDTO> findAllTransactionsOfUserByType(String type, int pageNumber, int pageSize) {
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
 		var typeEnum = TransactionType.get(type);
-		return repository.findAllByUserAndType(user, typeEnum);
+		var transactions = repository.findAllByUserAndType(user, typeEnum, PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
 	}
 
-	public List<Transaction> findAllTransactionsOfUserByTypeAndCurrency(long userId, String type, String currency) {
-		var user = userService.findById(userId);
-		var typeEnum = TransactionType.get(type);
-		var currencyEnum = Currency.get(currency);
-		return repository.findAllByCurrencyAndUserAndType(currencyEnum, user, typeEnum);
-	}
+	public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrency(String type, String currency, int pageNumber,
+			int pageSize) {
 
-	public List<Transaction> findAllTransactionsOfUserByTypeAndCurrencyAtATime(long userId, String type,
-			String currency, LocalDateTime time) {
-		var user = userService.findById(userId);
-		var typeEnum = TransactionType.get(type);
-		var currencyEnum = Currency.get(currency);
-		return repository.findByTimeAndCurrencyAndUserAndType(time, currencyEnum, user, typeEnum);
-	}
-
-	public List<Transaction> findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(long userId, String type,
-			String currency, LocalDateTime time1, LocalDateTime time2) {
-		var user = userService.findById(userId);
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
 		var typeEnum = TransactionType.get(type);
 		var currencyEnum = Currency.get(currency);
-		return repository.findByTimeBetweenAndCurrencyAndUserAndType(time1, time2, currencyEnum, user, typeEnum);
+		var transactions = repository.findAllByCurrencyAndUserAndType(currencyEnum, user, typeEnum,
+				PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
 	}
 
-	public Transaction findById(long id) {
-		return repository.findById(id)
+	public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyAtATime(String type, String currency,
+			LocalDateTime time, int pageNumber, int pageSize) {
+
+		if (time == null) {
+			time = LocalDateTime.now();
+		}
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+		var typeEnum = TransactionType.get(type);
+		var currencyEnum = Currency.get(currency);
+		var transactions = repository.findByTimeAndCurrencyAndUserAndType(time, currencyEnum, user, typeEnum,
+				PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
+	}
+
+	public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(String type, String currency,
+			LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
+
+		if (time1 == null) {
+			time1 = LocalDate.now().atStartOfDay();
+		}
+
+		if (time2 == null) {
+			time2 = LocalDate.now().atTime(LocalTime.MAX);
+		}
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+		var typeEnum = TransactionType.get(type);
+		var currencyEnum = Currency.get(currency);
+		var transactions = repository.findByTimeBetweenAndCurrencyAndUserAndType(time1, time2, currencyEnum, user,
+				typeEnum, PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
+	}
+
+	public TransactionDTO findById(long id) {
+		var trans = repository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Transaction is not found with id " + id));
+		return convertToDto(trans);
 	}
-	
+
 	public void delete(long id) {
-		var transaction = findById(id);
-		repository.delete(transaction);
+		var trans = repository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Transaction is not found with id " + id));
+		repository.delete(trans);
+	}
+
+	private TransactionDTO convertToDto(Transaction trans) {
+		return new TransactionDTO(trans.getUser().getId(), trans.getAmount(), trans.getType().getName(),
+				trans.getCurrency().getIsoCode(), trans.getTime());
 	}
 }
