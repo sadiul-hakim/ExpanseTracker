@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 
 @RestController
@@ -25,12 +26,14 @@ public class RoleController {
 		this.roleService = roleService;
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@PostMapping
 	ResponseEntity<Map<String, String>> saveRole(@RequestBody @Valid Role role) {
 		roleService.save(role);
 		return ResponseEntity.ok(Map.of("message", "Successfully saved role " + role.getName()));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping
 	ResponseEntity<List<Role>> findAllRoles(@RequestParam(defaultValue = "0") int pageNumber,
 			@RequestParam(defaultValue = "200") int pageSize) {
@@ -38,12 +41,14 @@ public class RoleController {
 		return ResponseEntity.ok(all);
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/{id}")
 	ResponseEntity<Role> findById(@PathVariable long id) {
 		var role = roleService.findById(id);
 		return ResponseEntity.ok(role);
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@DeleteMapping("/{id}")
 	ResponseEntity<Map<String, String>> deleteById(@PathVariable long id) {
 		roleService.delete(id);

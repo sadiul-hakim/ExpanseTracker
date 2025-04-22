@@ -1,5 +1,6 @@
 package xyz.sadiulhakim.controller;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -38,6 +39,7 @@ public class TokenController {
         this.userDetailsService = userDetailsService;
     }
 
+    @RateLimiter(name = "defaultRateLimiter")
     @GetMapping("/refreshToken")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
@@ -79,6 +81,7 @@ public class TokenController {
         }
     }
 
+    @RateLimiter(name = "defaultRateLimiter")
     @PostMapping(value = "/validate-token", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> validateToken(@RequestBody Token token) {
 

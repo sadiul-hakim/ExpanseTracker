@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
 
@@ -28,23 +29,27 @@ public class TransactionController {
 		this.transactionService = transactionService;
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@PostMapping
 	ResponseEntity<Map<String, String>> saveTransaction(@RequestBody @Valid TransactionDTO dto) {
 		transactionService.save(dto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Successfully saved transaction!"));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/get-by-id")
 	ResponseEntity<TransactionDTO> findById(@RequestParam long id) {
 		return ResponseEntity.ok(transactionService.findById(id));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@DeleteMapping("/delete")
 	ResponseEntity<Map<String, String>> delete(@RequestParam long id) {
 		transactionService.delete(id);
 		return ResponseEntity.ok(Map.of("message", "Successfully deleted transaction " + id + "."));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping
 	ResponseEntity<List<TransactionDTO>> findAllByUser(@RequestParam(defaultValue = "0") int pageNumber,
 			@RequestParam(defaultValue = "200") int pageSize) {
@@ -55,6 +60,7 @@ public class TransactionController {
 		return ResponseEntity.ok(transactionService.findAllTransactionsOfUser(pageNumber, pageSize));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/type/{type}")
 	ResponseEntity<List<TransactionDTO>> findAllByUserAndType(@PathVariable String type,
 			@RequestParam(defaultValue = "0") int pageNumber, @RequestParam(defaultValue = "200") int pageSize) {
@@ -64,6 +70,7 @@ public class TransactionController {
 		return ResponseEntity.ok(transactionService.findAllTransactionsOfUserByType(type, pageNumber, pageSize));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/type/{type}/currency/{currency}")
 	ResponseEntity<List<TransactionDTO>> findAllByUserAndType(@PathVariable String type, @PathVariable String currency,
 			@RequestParam(defaultValue = "0") int pageNumber, @RequestParam(defaultValue = "200") int pageSize) {
@@ -74,6 +81,7 @@ public class TransactionController {
 				transactionService.findAllTransactionsOfUserByTypeAndCurrency(type, currency, pageNumber, pageSize));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/type/{type}/currency/{currency}/on")
 	ResponseEntity<List<TransactionDTO>> findAllByUserAndTypeOnADate(@PathVariable String type,
 			@PathVariable String currency, @RequestParam LocalDateTime time,
@@ -85,6 +93,7 @@ public class TransactionController {
 				time, pageNumber, pageSize));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/type/{type}/currency/{currency}/between")
 	ResponseEntity<List<TransactionDTO>> findAllByUserAndTypeBetweenDates(@PathVariable String type,
 			@PathVariable String currency, @RequestParam LocalDateTime time1, @RequestParam LocalDateTime time2,

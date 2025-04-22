@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
 
@@ -26,6 +27,7 @@ public class UserController {
 		this.userService = userService;
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@PostMapping
 	ResponseEntity<Map<String, String>> registerUser(@RequestBody @Valid User user) {
 		userService.save(user);
@@ -33,6 +35,7 @@ public class UserController {
 				.body(Map.of("message", "User " + user.getEmail() + " is registered successfully."));
 	}
 
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping
 	ResponseEntity<List<User>> getUsers(@RequestParam(defaultValue = "0") int pageNumber,
 			@RequestParam(defaultValue = "200") int pageSize) {
@@ -43,11 +46,13 @@ public class UserController {
 		return ResponseEntity.ok(userService.findAll(pageNumber, pageSize));
 	}
 	
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/{userId}")
 	ResponseEntity<User> getUsers(@PathVariable long userId) {
 		return ResponseEntity.ok(userService.findById(userId));
 	}
 	
+	@RateLimiter(name = "defaultRateLimiter")
 	@PostMapping("/{userId}")
 	ResponseEntity<Map<String, String>> changePassword(@PathVariable long userId, @RequestBody @Valid ChangePasswordPojo pojo) {
 		
@@ -60,12 +65,14 @@ public class UserController {
 		return ResponseEntity.ok(Map.of("message", "Successfully changed password!"));
 	}
 	
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/{userId}/role/{roleId}")
 	ResponseEntity<Map<String, String>> asignRole(@PathVariable long userId, @PathVariable long roleId){
 		userService.assignRoleToUser(userId, roleId);
 		return ResponseEntity.ok(Map.of("message", "User role is changed successfully!"));
 	}
 	
+	@RateLimiter(name = "defaultRateLimiter")
 	@DeleteMapping("/{userId}")
 	ResponseEntity<Map<String, String>> deleteUsers(@PathVariable long userId) {
 		userService.delete(userId);
