@@ -19,7 +19,7 @@ SSL certification (commonly referred to as an SSL certificate) is a digital cert
 4. Many data protection regulations (like GDPR, PCI-DSS) require encryption.
 5. 	Modern browsers warn users when accessing non-HTTPS websites.
 
-# Stablishe SSL Secure connection in Spring Boot App
+# Stablishe SSL Secure connection in Spring Boot App (❌ Self Signed)
 
 ## Put configurations
 ```
