@@ -3,6 +3,9 @@ package xyz.sadiulhakim.transaction;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import org.hibernate.annotations.Check;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,6 +20,7 @@ import jakarta.persistence.TemporalType;
 import xyz.sadiulhakim.user.User;
 
 @Entity
+@Check(constraints = "amount > 0")
 public class Transaction {
 
 	@Id
@@ -25,6 +29,7 @@ public class Transaction {
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_id", referencedColumnName = "id")
 	private User user;
+	@Column(nullable = false)
 	private double amount;
 	@Enumerated(EnumType.STRING)
 	private TransactionType type;
