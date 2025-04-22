@@ -24,7 +24,7 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain config(HttpSecurity http) throws Exception {
 
-		String[] permittedEndpoints = { "/login", "/refreshToken", "/validate-token" };
+		String[] permittedEndpoints = { "/login", "/refreshToken", "/validate-token","/ping" };
 		String[] endpointsForAdmin = { "/role/**", "/users/**" };
 		String[] endpointsForUser = { "/role/*", "/users/*" };
 
