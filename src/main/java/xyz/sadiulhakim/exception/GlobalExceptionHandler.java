@@ -15,19 +15,27 @@ import io.jsonwebtoken.ExpiredJwtException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+	private static final String MESSAGE = "message";
+
 	@ExceptionHandler(EntityNotFoundExecption.class)
 	ResponseEntity<Map<String, String>> handleEntityNotFoundExecption(EntityNotFoundExecption e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(MESSAGE, e.getMessage()));
 	}
-	
+
+	@ExceptionHandler(TokenExpiredException.class)
+	ResponseEntity<Map<String, String>> handleTokenExpiredException(TokenExpiredException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(MESSAGE, e.getMessage()));
+	}
+
 	@ExceptionHandler(UnsupportedOperationException.class)
 	ResponseEntity<Map<String, String>> handleUnsupportedOperationException(UnsupportedOperationException e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(MESSAGE, e.getMessage()));
 	}
-	
+
 	@ExceptionHandler(RequestNotPermitted.class)
 	ResponseEntity<Map<String, String>> handleRequestNotPermitted(RequestNotPermitted e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "you have been blocked for making excessive calls!"));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of(MESSAGE, "you have been blocked for making excessive calls!"));
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
@@ -38,9 +46,9 @@ public class GlobalExceptionHandler {
 		exception.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 		return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
 	}
-	
+
 	@ExceptionHandler(ExpiredJwtException.class)
-    ResponseEntity<Map<String, String>> handleExpiredJwtException(ExpiredJwtException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Jwt token has been expired!"));
-    }
+	ResponseEntity<Map<String, String>> handleExpiredJwtException(ExpiredJwtException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(MESSAGE, "Jwt token has been expired!"));
+	}
 }

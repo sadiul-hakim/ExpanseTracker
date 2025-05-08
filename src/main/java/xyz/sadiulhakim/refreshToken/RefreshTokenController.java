@@ -1,20 +1,16 @@
-package xyz.sadiulhakim.controller;
+package xyz.sadiulhakim.refreshToken;
 
-import java.util.Collections;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -25,21 +21,23 @@ import io.jsonwebtoken.io.IOException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import xyz.sadiulhakim.pojo.Token;
+import xyz.sadiulhakim.exception.TokenExpiredException;
 import xyz.sadiulhakim.util.JwtHelper;
 
 @RestController
-public class TokenController {
+@RequestMapping("/refresh-token")
+public class RefreshTokenController {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(TokenController.class);
 	private final UserDetailsService userDetailsService;
+	private final RefreshTokenService refreshTokenService;
 
-	public TokenController(UserDetailsService userDetailsService) {
+	public RefreshTokenController(UserDetailsService userDetailsService, RefreshTokenService refreshTokenService) {
 		this.userDetailsService = userDetailsService;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	@RateLimiter(name = "defaultRateLimiter")
-	@GetMapping("/refreshToken")
+	@GetMapping
 	public ResponseEntity<Map<String, String>> refreshToken(HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 
@@ -53,8 +51,16 @@ public class TokenController {
 			// Extract the token from authorization text
 			String token = authorization.substring("Bearer ".length());
 
+			// Validate structure & find in DB
+			var tokenEntity = refreshTokenService.findByToken(token);
+
+			if (tokenEntity.getExpiryDate().isBefore(Instant.now())) {
+				refreshTokenService.delete(tokenEntity);
+				throw new TokenExpiredException("Refresh token expired!");
+			}
+
 			// Extract the username
-			String username = JwtHelper.extractUsername(token);
+			String username = tokenEntity.getUser();
 
 			// Get the userDetails using username
 			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -80,31 +86,6 @@ public class TokenController {
 			Map<String, String> errorMap = new HashMap<>();
 			errorMap.put("error", "Invalid Token");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
-		}
-	}
-
-	@RateLimiter(name = "defaultRateLimiter")
-	@PostMapping(value = "/validate-token", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<String, String>> validateToken(@RequestBody Token token) {
-
-		try {
-			if (token.token().isEmpty()) {
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.body(Collections.singletonMap("error", "Invalid token"));
-			}
-
-			String username = JwtHelper.extractUsername(token.token());
-
-			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-			boolean validToken = JwtHelper.isValidToken(token.token(), userDetails);
-			return validToken ? ResponseEntity.ok(Collections.singletonMap("message", "The Token is valid!"))
-					: ResponseEntity.status(HttpStatus.BAD_REQUEST)
-							.body(Collections.singletonMap("message", "Invalid token!"));
-		} catch (Exception ex) {
-			LOGGER.error(ex.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(Collections.singletonMap("message", "Something went wrong!"));
 		}
 	}
 }

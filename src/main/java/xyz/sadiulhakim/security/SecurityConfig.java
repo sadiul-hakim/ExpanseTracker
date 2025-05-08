@@ -10,26 +10,30 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
+import xyz.sadiulhakim.refreshToken.RefreshTokenService;
+
 @Configuration
 public class SecurityConfig {
 	private final CustomAuthorizationFilter customAuthorizationFilter;
 	private final AuthenticationProvider authenticationProvider;
+	private final RefreshTokenService refreshTokenService;
 
 	public SecurityConfig(CustomAuthorizationFilter customAuthorizationFilter,
-			AuthenticationProvider authenticationProvider) {
+			AuthenticationProvider authenticationProvider, RefreshTokenService refreshTokenService) {
 		this.customAuthorizationFilter = customAuthorizationFilter;
 		this.authenticationProvider = authenticationProvider;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	@Bean
 	SecurityFilterChain config(HttpSecurity http) throws Exception {
 
-		String[] permittedEndpoints = { "/login", "/refreshToken", "/validate-token","/ping" };
+		String[] permittedEndpoints = { "/login", "/auth/**", "/refresh-token/**" };
 		String[] endpointsForAdmin = { "/role/**", "/users/**" };
 		String[] endpointsForUser = { "/role/*", "/users/*" };
 
 		return http
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/validate-token")
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/auth/**")
 						.csrfTokenRepository(new CustomCsrfTokenRepository())
 						.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
 				.authorizeHttpRequests(auth -> auth.requestMatchers(permittedEndpoints).permitAll())
@@ -39,6 +43,6 @@ public class SecurityConfig {
 				.authenticationProvider(authenticationProvider)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-				.addFilter(new CustomAuthenticationFilter(authenticationProvider)).build();
+				.addFilter(new CustomAuthenticationFilter(authenticationProvider, refreshTokenService)).build();
 	}
 }

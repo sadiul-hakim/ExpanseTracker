@@ -12,15 +12,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import xyz.sadiulhakim.refreshToken.RefreshTokenService;
 import xyz.sadiulhakim.util.JwtHelper;
 import xyz.sadiulhakim.util.ResponseUtility;
 
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
 	private final AuthenticationProvider authenticationProvider;
+	private final RefreshTokenService refreshTokenService;
 
-	public CustomAuthenticationFilter(AuthenticationProvider authenticationProvider) {
+	public CustomAuthenticationFilter(AuthenticationProvider authenticationProvider,
+			RefreshTokenService refreshTokenService) {
 		this.authenticationProvider = authenticationProvider;
+		this.refreshTokenService = refreshTokenService;
 	}
 
 	@Override
@@ -52,8 +56,10 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 		extraClaims.put("roles", user.getAuthorities());
 
 		String accessToken = JwtHelper.generateToken(user, extraClaims, (1000 * 60 * 60 * 5)); // expires in 5 hours
-		String refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7)); // expires in 7
-																										// days
+
+		// expires in 7 days
+		String refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7));
+		refreshTokenService.save(refreshToken, user.getUsername());
 
 		Map<String, String> tokenMap = new HashMap<>();
 		tokenMap.put("accessToken", accessToken);
