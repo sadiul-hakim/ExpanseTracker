@@ -17,46 +17,48 @@ import xyz.sadiulhakim.util.ResponseUtility;
 
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private final AuthenticationProvider authenticationProvider;
+	private final AuthenticationProvider authenticationProvider;
 
-    public CustomAuthenticationFilter(AuthenticationProvider authenticationProvider) {
-        this.authenticationProvider = authenticationProvider;
-    }
+	public CustomAuthenticationFilter(AuthenticationProvider authenticationProvider) {
+		this.authenticationProvider = authenticationProvider;
+	}
 
-    @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException {
+	@Override
+	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+			throws AuthenticationException {
 
-        // Extract the username and password from request attribute
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
+		// Extract the username and password from request attribute
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
 
-        // Create instance of UsernamePasswordAuthenticationToken
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
+		// Create instance of UsernamePasswordAuthenticationToken
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
+				password);
 
-        // Authenticate the user
-        return authenticationProvider.authenticate(authenticationToken);
-    }
+		// Authenticate the user
+		return authenticationProvider.authenticate(authenticationToken);
+	}
 
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-                                            Authentication authentication) {
+	@Override
+	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+			Authentication authentication) {
 
-        // Extract the authenticated user.
-        var user = (CustomUserDetails) authentication.getPrincipal();
+		// Extract the authenticated user.
+		var user = (CustomUserDetails) authentication.getPrincipal();
 
-        // Generate access and refresh tokens
-        // Access token has all the authority information while refresh token does not.
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("roles", user.getAuthorities());
+		// Generate access and refresh tokens
+		// Access token has all the authority information while refresh token does not.
+		Map<String, Object> extraClaims = new HashMap<>();
+		extraClaims.put("roles", user.getAuthorities());
 
-        String accessToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7)); // expires in 7 days
-        String refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 30)); // expires in 30 days
+		String accessToken = JwtHelper.generateToken(user, extraClaims, (1000 * 60 * 60 * 5)); // expires in 5 hours
+		String refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7)); // expires in 7
+																										// days
 
-        Map<String, String> tokenMap = new HashMap<>();
-        tokenMap.put("accessToken", accessToken);
-        tokenMap.put("refreshToken", refreshToken);
+		Map<String, String> tokenMap = new HashMap<>();
+		tokenMap.put("accessToken", accessToken);
+		tokenMap.put("refreshToken", refreshToken);
 
-        ResponseUtility.commitResponse(response, tokenMap, 200);
-    }
+		ResponseUtility.commitResponse(response, tokenMap, 200);
+	}
 }

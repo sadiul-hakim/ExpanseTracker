@@ -22,23 +22,6 @@
 				},
 				"auth-model": "native"
 			}
-		},
-		"mysql8-196661f4b11-1d7785a479b11543": {
-			"provider": "mysql",
-			"driver": "mysql8",
-			"name": "localhost",
-			"save-password": true,
-			"show-system-objects": true,
-			"configuration": {
-				"host": "localhost",
-				"port": "3306",
-				"url": "jdbc:mysql://localhost:3306/",
-				"configurationType": "MANUAL",
-				"home": "mysql_client",
-				"type": "dev",
-				"closeIdleConnection": true,
-				"auth-model": "native"
-			}
 		}
 	},
 	"connection-types": {
