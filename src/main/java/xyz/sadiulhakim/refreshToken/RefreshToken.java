@@ -3,6 +3,7 @@ package xyz.sadiulhakim.refreshToken;
 import java.time.Instant;
 import java.util.Objects;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,10 +15,12 @@ public class RefreshToken {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Column(nullable = false)
 	private String token;
 
 	private Instant expiryDate;
 
+	@Column(unique = true, nullable = false)
 	private String username;
 
 	public RefreshToken() {

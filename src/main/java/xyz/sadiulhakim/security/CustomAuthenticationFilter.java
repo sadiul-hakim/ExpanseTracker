@@ -57,9 +57,17 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
 		String accessToken = JwtHelper.generateToken(user, extraClaims, (1000 * 60 * 60 * 5)); // expires in 5 hours
 
-		// expires in 7 days
-		String refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7));
-		refreshTokenService.save(refreshToken, user.getUsername());
+		var refreshTokenOptional = refreshTokenService.findByUsername(user.getUsername());
+
+		String refreshToken;
+		if (refreshTokenOptional.isEmpty() || !JwtHelper.isValidToken(refreshTokenOptional.get().getToken(), user)) {
+
+			// expires in 7 days
+			refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7));
+			refreshTokenService.save(refreshToken, user.getUsername());
+		} else {
+			refreshToken = refreshTokenOptional.get().getToken();
+		}
 
 		Map<String, String> tokenMap = new HashMap<>();
 		tokenMap.put("accessToken", accessToken);

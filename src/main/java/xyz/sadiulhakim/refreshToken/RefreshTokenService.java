@@ -2,6 +2,7 @@ package xyz.sadiulhakim.refreshToken;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -36,5 +37,9 @@ public class RefreshTokenService {
 	public RefreshToken findByToken(String token) {
 		return refreshTokenRepository.findByToken(token)
 				.orElseThrow(() -> new EntityNotFoundException("Refresh token is not found!"));
+	}
+
+	public Optional<RefreshToken> findByUsername(String username) {
+		return refreshTokenRepository.findByUsername(username);
 	}
 }
