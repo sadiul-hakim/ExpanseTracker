@@ -60,7 +60,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 		var refreshTokenOptional = refreshTokenService.findByUsername(user.getUsername());
 
 		String refreshToken;
-		if (refreshTokenOptional.isEmpty() || !JwtHelper.isValidToken(refreshTokenOptional.get().getToken(), user)) {
+		if (refreshTokenOptional.isEmpty() || refreshTokenOptional.get().isTokenExpired()) {
 
 			// expires in 7 days
 			refreshToken = JwtHelper.generateToken(user, extraClaims, (1000L * 60 * 60 * 24 * 7));

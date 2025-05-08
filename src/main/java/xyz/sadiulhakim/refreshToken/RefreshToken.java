@@ -67,6 +67,10 @@ public class RefreshToken {
 		this.username = username;
 	}
 
+	public boolean isTokenExpired() {
+		return getExpiryDate().isBefore(Instant.now());
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(expiryDate, id, token, username);
