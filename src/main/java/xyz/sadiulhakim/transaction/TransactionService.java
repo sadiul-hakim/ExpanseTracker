@@ -10,10 +10,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import xyz.sadiulhakim.exception.UnsupportedActivityException;
 import xyz.sadiulhakim.user.UserService;
 
 @Service
 public class TransactionService {
+
+	public static final String ROLE_ADMIN = "ROLE_ADMIN";
+
 	private final TransactionRepository repository;
 	private final UserService userService;
 
@@ -105,14 +109,32 @@ public class TransactionService {
 	}
 
 	public TransactionDTO findById(long id) {
+
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+
 		var trans = repository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Transaction is not found with id " + id));
+
+		if (!trans.getUser().getId().equals(user.getId()) && !user.getRole().getName().equals(ROLE_ADMIN)) {
+			throw new UnsupportedActivityException("You are not allowed to access the transaction!");
+		}
+
 		return convertToDto(trans);
 	}
 
 	public void delete(long id) {
+
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+
 		var trans = repository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Transaction is not found with id " + id));
+
+		if (!trans.getUser().getId().equals(user.getId()) && !user.getRole().getName().equals(ROLE_ADMIN)) {
+			throw new UnsupportedActivityException("You are not allowed to delete this transaction!");
+		}
+
 		repository.delete(trans);
 	}
 
