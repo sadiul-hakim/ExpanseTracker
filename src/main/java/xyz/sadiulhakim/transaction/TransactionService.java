@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import xyz.sadiulhakim.category.CategoryService;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
 import xyz.sadiulhakim.user.UserService;
 
@@ -20,10 +21,13 @@ public class TransactionService {
 
 	private final TransactionRepository repository;
 	private final UserService userService;
+	private final CategoryService categoryService;
 
-	public TransactionService(TransactionRepository repository, UserService userService) {
+	public TransactionService(TransactionRepository repository, UserService userService,
+			CategoryService categoryService) {
 		this.repository = repository;
 		this.userService = userService;
+		this.categoryService = categoryService;
 	}
 
 	public void save(TransactionDTO dto) {
@@ -34,7 +38,10 @@ public class TransactionService {
 
 		var type = TransactionType.get(dto.type());
 		var currency = Currency.get(dto.currency());
-		var transaction = new Transaction(user, dto.amount(), type, currency, LocalDateTime.now());
+
+		var category = categoryService.findModelById(dto.categoryId());
+		var transaction = new Transaction(user, dto.amount(), type, currency, dto.description(), category,
+				LocalDateTime.now());
 		repository.save(transaction);
 	}
 
@@ -67,6 +74,21 @@ public class TransactionService {
 		var currencyEnum = Currency.get(currency);
 		var transactions = repository.findAllByCurrencyAndUserAndType(currencyEnum, user, typeEnum,
 				PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
+	}
+
+	public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrency(String category, String type,
+			String currency, int pageNumber, int pageSize) {
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+		var typeEnum = TransactionType.get(type);
+		var currencyEnum = Currency.get(currency);
+		var categoryModel = categoryService.findModelByName(category);
+
+		var transactions = repository.findAllByCurrencyAndUserAndTypeAndCategory(currencyEnum, user, typeEnum,
+				categoryModel, PageRequest.of(pageNumber, pageSize));
 		return transactions.stream().map(this::convertToDto).toList();
 	}
 
@@ -108,6 +130,28 @@ public class TransactionService {
 		return transactions.stream().map(this::convertToDto).toList();
 	}
 
+	public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrencyBetweenTimes(String category,
+			String type, String currency, LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
+
+		if (time1 == null) {
+			time1 = LocalDate.now().atStartOfDay();
+		}
+
+		if (time2 == null) {
+			time2 = LocalDate.now().atTime(LocalTime.MAX);
+		}
+
+		// Use the current userId
+		var username = SecurityContextHolder.getContext().getAuthentication().getName();
+		var user = userService.findByEmail(username);
+		var typeEnum = TransactionType.get(type);
+		var currencyEnum = Currency.get(currency);
+		var categoryModel = categoryService.findModelByName(category);
+		var transactions = repository.findByTimeBetweenAndCurrencyAndUserAndTypeAndCategory(time1, time2, currencyEnum,
+				user, typeEnum, categoryModel, PageRequest.of(pageNumber, pageSize));
+		return transactions.stream().map(this::convertToDto).toList();
+	}
+
 	public TransactionDTO findById(long id) {
 
 		var username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -139,7 +183,7 @@ public class TransactionService {
 	}
 
 	private TransactionDTO convertToDto(Transaction trans) {
-		return new TransactionDTO(trans.getUser().getId(), trans.getAmount(), trans.getType().getName(),
-				trans.getCurrency().getIsoCode(), trans.getTime());
+		return new TransactionDTO(trans.getUser().getId(), trans.getCategory().getId(), trans.getAmount(),
+				trans.getType().getName(), trans.getCurrency().getIsoCode(), trans.getDescription(), trans.getTime());
 	}
 }

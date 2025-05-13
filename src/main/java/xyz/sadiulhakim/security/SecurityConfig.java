@@ -30,7 +30,7 @@ public class SecurityConfig {
 
 		String[] permittedEndpoints = { "/login", "/auth/**", "/refresh-token/**" };
 		String[] endpointsForAdmin = { "/role/**", "/users/**" };
-		String[] endpointsForUser = { "/role/*", "/users/*" };
+		String[] endpointsForUser = { "/role/*", "/users/*" }; // TODO: Fix this
 
 		return http
 				.csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/auth/**")

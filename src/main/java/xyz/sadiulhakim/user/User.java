@@ -1,14 +1,20 @@
 package xyz.sadiulhakim.user;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -17,7 +23,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import xyz.sadiulhakim.category.Category;
 import xyz.sadiulhakim.role.Role;
+import xyz.sadiulhakim.transaction.Transaction;
 
 @Entity
 @Table(name = "application_user")
@@ -50,6 +58,14 @@ public class User {
 
 	@ManyToOne
 	private Role role;
+	
+	@JsonIgnore
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Category> categories = new ArrayList<>();
+	
+	@JsonIgnore
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Transaction> transactions = new ArrayList<>();
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private LocalDateTime joiningDate;
@@ -118,6 +134,22 @@ public class User {
 
 	public void setRole(Role role) {
 		this.role = role;
+	}
+
+	public List<Category> getCategories() {
+		return categories;
+	}
+
+	public void setCategories(List<Category> categories) {
+		this.categories = categories;
+	}
+
+	public List<Transaction> getTransactions() {
+		return transactions;
+	}
+
+	public void setTransactions(List<Transaction> transactions) {
+		this.transactions = transactions;
 	}
 
 	@Override

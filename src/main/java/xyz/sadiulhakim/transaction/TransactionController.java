@@ -82,6 +82,18 @@ public class TransactionController {
 	}
 
 	@RateLimiter(name = "defaultRateLimiter")
+	@GetMapping("/category/{category}/type/{type}/currency/{currency}")
+	ResponseEntity<List<TransactionDTO>> findAllByUserAndTypeAndCategory(@PathVariable String category,
+			@PathVariable String type, @PathVariable String currency, @RequestParam(defaultValue = "0") int pageNumber,
+			@RequestParam(defaultValue = "200") int pageSize) {
+		if (pageSize > 200) {
+			throw new UnsupportedActivityException("You can not load more than 200 items!");
+		}
+		return ResponseEntity.ok(
+				transactionService.findAllTransactionsOfUserByTypeAndCurrency(type, currency, pageNumber, pageSize));
+	}
+
+	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping("/type/{type}/currency/{currency}/on")
 	ResponseEntity<List<TransactionDTO>> findAllByUserAndTypeOnADate(@PathVariable String type,
 			@PathVariable String currency, @RequestParam LocalDateTime time,
@@ -103,5 +115,18 @@ public class TransactionController {
 		}
 		return ResponseEntity.ok(transactionService.findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(type,
 				currency, time1, time2, pageNumber, pageSize));
+	}
+
+	@RateLimiter(name = "defaultRateLimiter")
+	@GetMapping("/category/{category}/type/{type}/currency/{currency}/between")
+	ResponseEntity<List<TransactionDTO>> findAllByUserAndTypeAndCategoryBetweenDates(@PathVariable String category,
+			@PathVariable String type, @PathVariable String currency, @RequestParam LocalDateTime time1,
+			@RequestParam LocalDateTime time2, @RequestParam(defaultValue = "0") int pageNumber,
+			@RequestParam(defaultValue = "200") int pageSize) {
+		if (pageSize > 200) {
+			throw new UnsupportedActivityException("You can not load more than 200 items!");
+		}
+		return ResponseEntity.ok(transactionService.findAllTransactionsOfUserByTypeAndCategoryAndCurrencyBetweenTimes(
+				category, type, currency, time1, time2, pageNumber, pageSize));
 	}
 }
