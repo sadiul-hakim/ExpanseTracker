@@ -27,7 +27,7 @@ public class Role {
 
 	@Column(length = 45)
 	@Nullable
-	@Size(min = 0, max = 100, message = "description must be between 20 to 100 characters")
+	@Size(max = 100, message = "description must be between 20 to 100 characters")
 	private String description;
 
 	public Role() {

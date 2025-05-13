@@ -1,23 +1,16 @@
 package xyz.sadiulhakim.transaction;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/transaction")
@@ -113,6 +106,12 @@ public class TransactionController {
 		if (pageSize > 200) {
 			throw new UnsupportedActivityException("You can not load more than 200 items!");
 		}
+
+		long days = time1.until(time2, ChronoUnit.DAYS);
+		if(days > 30){
+			throw new UnsupportedActivityException("You can not load more than 30 days transactions!");
+		}
+
 		return ResponseEntity.ok(transactionService.findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(type,
 				currency, time1, time2, pageNumber, pageSize));
 	}
@@ -126,6 +125,12 @@ public class TransactionController {
 		if (pageSize > 200) {
 			throw new UnsupportedActivityException("You can not load more than 200 items!");
 		}
+
+		long days = time1.until(time2, ChronoUnit.DAYS);
+		if(days > 30){
+			throw new UnsupportedActivityException("You can not load more than 30 days transactions!");
+		}
+
 		return ResponseEntity.ok(transactionService.findAllTransactionsOfUserByTypeAndCategoryAndCurrencyBetweenTimes(
 				category, type, currency, time1, time2, pageNumber, pageSize));
 	}

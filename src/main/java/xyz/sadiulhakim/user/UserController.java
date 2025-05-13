@@ -28,7 +28,7 @@ public class UserController {
 	}
 
 	@RateLimiter(name = "defaultRateLimiter")
-	@PostMapping
+	@PostMapping("/register")
 	ResponseEntity<Map<String, String>> registerUser(@RequestBody @Valid User user) {
 		userService.save(user);
 		return ResponseEntity.status(HttpStatus.CREATED)

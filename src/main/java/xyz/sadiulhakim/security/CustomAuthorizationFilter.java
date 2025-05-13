@@ -1,6 +1,5 @@
 package xyz.sadiulhakim.security;
 
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,7 +35,8 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         try {
             if (request.getServletPath().equalsIgnoreCase("/login") ||
                     request.getServletPath().endsWith("/validate-token") ||
-                    request.getServletPath().endsWith("/refreshToken")) {
+                    request.getServletPath().endsWith("/refreshToken") ||
+                    request.getServletPath().endsWith("/users/register")) {
                 filterChain.doFilter(request, response);
             } else {
                 String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);

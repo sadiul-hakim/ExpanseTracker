@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 	private static final String MESSAGE = "message";
 
 	@ExceptionHandler(EntityNotFoundExecption.class)
-	ResponseEntity<Map<String, String>> handleEntityNotFoundExecption(EntityNotFoundExecption e) {
+	ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundExecption e) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(MESSAGE, e.getMessage()));
 	}
 

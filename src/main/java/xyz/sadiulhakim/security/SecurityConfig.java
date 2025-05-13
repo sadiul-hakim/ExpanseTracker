@@ -14,35 +14,35 @@ import xyz.sadiulhakim.refreshToken.RefreshTokenService;
 
 @Configuration
 public class SecurityConfig {
-	private final CustomAuthorizationFilter customAuthorizationFilter;
-	private final AuthenticationProvider authenticationProvider;
-	private final RefreshTokenService refreshTokenService;
+    private final CustomAuthorizationFilter customAuthorizationFilter;
+    private final AuthenticationProvider authenticationProvider;
+    private final RefreshTokenService refreshTokenService;
 
-	public SecurityConfig(CustomAuthorizationFilter customAuthorizationFilter,
-			AuthenticationProvider authenticationProvider, RefreshTokenService refreshTokenService) {
-		this.customAuthorizationFilter = customAuthorizationFilter;
-		this.authenticationProvider = authenticationProvider;
-		this.refreshTokenService = refreshTokenService;
-	}
+    public SecurityConfig(CustomAuthorizationFilter customAuthorizationFilter,
+                          AuthenticationProvider authenticationProvider, RefreshTokenService refreshTokenService) {
+        this.customAuthorizationFilter = customAuthorizationFilter;
+        this.authenticationProvider = authenticationProvider;
+        this.refreshTokenService = refreshTokenService;
+    }
 
-	@Bean
-	SecurityFilterChain config(HttpSecurity http) throws Exception {
+    @Bean
+    SecurityFilterChain config(HttpSecurity http) throws Exception {
 
-		String[] permittedEndpoints = { "/login", "/auth/**", "/refresh-token/**" };
-		String[] endpointsForAdmin = { "/role/**", "/users/**" };
-		String[] endpointsForUser = { "/role/*", "/users/*" }; // TODO: Fix this
+        String[] permittedEndpoints = {"/login", "/auth/**", "/refresh-token/**", "/users/register"};
+        String[] endpointsForAdmin = {"/role/**", "/users/**"};
+        String[] endpointsForUser = {"/role/*", "/users/*"}; // TODO: Fix this
 
-		return http
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/auth/**")
-						.csrfTokenRepository(new CustomCsrfTokenRepository())
-						.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
-				.authorizeHttpRequests(auth -> auth.requestMatchers(permittedEndpoints).permitAll())
-				.authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, endpointsForUser).hasRole("USER"))
-				.authorizeHttpRequests(auth -> auth.requestMatchers(endpointsForAdmin).hasRole("ADMIN"))
-				.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-				.authenticationProvider(authenticationProvider)
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-				.addFilter(new CustomAuthenticationFilter(authenticationProvider, refreshTokenService)).build();
-	}
+        return http
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/auth/**", "/users/register")
+                        .csrfTokenRepository(new CustomCsrfTokenRepository())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(permittedEndpoints).permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, endpointsForUser).hasRole("USER"))
+                .authorizeHttpRequests(auth -> auth.requestMatchers(endpointsForAdmin).hasRole("ADMIN"))
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilter(new CustomAuthenticationFilter(authenticationProvider, refreshTokenService)).build();
+    }
 }
