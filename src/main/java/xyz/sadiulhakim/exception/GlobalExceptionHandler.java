@@ -90,7 +90,7 @@ public class GlobalExceptionHandler {
         // Always log the full exception stacktrace for diagnostics
         LOGGER.error("Unhandled exception occurred", e); // use your logger
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "Something went wrong. Please try again later."));
+                .body(Map.of(MESSAGE, "Something went wrong. Please try again later."));
     }
 
 }
