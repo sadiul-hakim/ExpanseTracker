@@ -1,9 +1,12 @@
 package xyz.sadiulhakim.refreshToken;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.io.IOException;
+import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,17 +15,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.io.IOException;
-import io.jsonwebtoken.security.SignatureException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import xyz.sadiulhakim.exception.TokenExpiredException;
 import xyz.sadiulhakim.util.JwtHelper;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/refresh-token")
@@ -38,8 +36,7 @@ public class RefreshTokenController {
 
 	@RateLimiter(name = "defaultRateLimiter")
 	@GetMapping
-	public ResponseEntity<Map<String, String>> refreshToken(HttpServletRequest request, HttpServletResponse response)
-			throws IOException {
+	public ResponseEntity<Map<String, String>> refreshToken(HttpServletRequest request) throws IOException {
 
 		String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
 		if (authorization == null || !authorization.startsWith("Bearer ")) {

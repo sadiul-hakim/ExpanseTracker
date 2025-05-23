@@ -34,14 +34,12 @@ public class SecurityConfig {
 
         String[] permittedEndpoints = {"/login", "/auth/**", "/refresh-token/**", "/users/register"};
         String[] endpointsForAdmin = {"/role/**", "/users/**"};
-        String[] endpointsForUser = {"/role/*", "/users/*"}; // TODO: Fix this
 
         return http
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/auth/**", "/users/register")
                         .csrfTokenRepository(new CustomCsrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(permittedEndpoints).permitAll())
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, endpointsForUser).hasRole("USER"))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(endpointsForAdmin).hasRole("ADMIN"))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .exceptionHandling(ex -> ex.accessDeniedHandler(forbiddenExceptionHandler))
