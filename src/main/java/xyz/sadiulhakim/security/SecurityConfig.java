@@ -10,8 +10,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import xyz.sadiulhakim.exception_handler.CustomForbiddenExceptionHandler;
 import xyz.sadiulhakim.refreshToken.RefreshTokenService;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -39,6 +43,24 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/login", "/auth/**", "/users/register")
                         .csrfTokenRepository(new CustomCsrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+                .cors(cors -> {
+                    CorsConfigurationSource source = request -> {
+                        CorsConfiguration configuration = new CorsConfiguration();
+                        configuration.setAllowedOrigins(List.of("*")); // TODO: Change it
+                        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+                        configuration.setAllowedHeaders(List.of(
+                                "Authorization",
+                                "Cache-Control",
+                                "Content-Type",
+                                "X-Requested-With",
+                                "Accept",
+                                "Origin"
+                        ));
+                        return configuration;
+                    };
+
+                    cors.configurationSource(source);
+                })
                 .authorizeHttpRequests(auth -> auth.requestMatchers(permittedEndpoints).permitAll())
                 .authorizeHttpRequests(auth -> auth.requestMatchers(endpointsForAdmin).hasRole("ADMIN"))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
