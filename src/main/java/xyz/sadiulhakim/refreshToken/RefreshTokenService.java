@@ -11,35 +11,40 @@ import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class RefreshTokenService {
-	private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-	public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
-		this.refreshTokenRepository = refreshTokenRepository;
-	}
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
+        this.refreshTokenRepository = refreshTokenRepository;
+    }
 
-	@Async("defaultTaskExecutor")
-	public void save(String token, String username) {
-		RefreshToken tokenEntity = new RefreshToken();
-		tokenEntity.setToken(token);
-		tokenEntity.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
-		tokenEntity.setUsername(username);
-		refreshTokenRepository.save(tokenEntity);
-	}
+    @Async("defaultTaskExecutor")
+    public void save(String token, String username) {
+        Optional<RefreshToken> tokenOpt = findByUsername(username);
+        if (tokenOpt.isPresent()) {
+            deleteByUsername(username);
+        }
 
-	public void deleteByUsername(String username) {
-		refreshTokenRepository.deleteByUsername(username);
-	}
+        RefreshToken tokenEntity = new RefreshToken();
+        tokenEntity.setToken(token);
+        tokenEntity.setExpiryDate(Instant.now().plus(7, ChronoUnit.DAYS));
+        tokenEntity.setUsername(username);
+        refreshTokenRepository.save(tokenEntity);
+    }
 
-	public void delete(RefreshToken token) {
-		refreshTokenRepository.delete(token);
-	}
+    public void deleteByUsername(String username) {
+        refreshTokenRepository.deleteByUsername(username);
+    }
 
-	public RefreshToken findByToken(String token) {
-		return refreshTokenRepository.findByToken(token)
-				.orElseThrow(() -> new EntityNotFoundException("Refresh token is not found!"));
-	}
+    public void delete(RefreshToken token) {
+        refreshTokenRepository.delete(token);
+    }
 
-	public Optional<RefreshToken> findByUsername(String username) {
-		return refreshTokenRepository.findByUsername(username);
-	}
+    public RefreshToken findByToken(String token) {
+        return refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new EntityNotFoundException("Refresh token is not found!"));
+    }
+
+    public Optional<RefreshToken> findByUsername(String username) {
+        return refreshTokenRepository.findByUsername(username);
+    }
 }

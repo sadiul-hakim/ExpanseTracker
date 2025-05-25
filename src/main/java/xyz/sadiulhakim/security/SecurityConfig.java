@@ -2,14 +2,14 @@ package xyz.sadiulhakim.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import xyz.sadiulhakim.exception_handler.CustomForbiddenExceptionHandler;
@@ -61,6 +61,19 @@ public class SecurityConfig {
 
                     cors.configurationSource(source);
                 })
+                .headers(headers -> headers
+                        // X-Content-Type-Options: nosniff (added by default, you can skip this explicitly)
+                        .contentTypeOptions(Customizer.withDefaults())
+
+                        // X-Frame-Options: DENY (default by Spring Security, but you can explicitly set)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
+
+                        // Strict-Transport-Security for HTTPS (enable if HTTPS)
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                )
                 .authorizeHttpRequests(auth -> auth.requestMatchers(permittedEndpoints).permitAll())
                 .authorizeHttpRequests(auth -> auth.requestMatchers(endpointsForAdmin).hasRole("ADMIN"))
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
