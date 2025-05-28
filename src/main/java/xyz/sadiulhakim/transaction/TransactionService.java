@@ -60,11 +60,13 @@ public class TransactionService {
 
             // Check for Budget
             if (type.equals(TransactionType.COST)) {
+
+                // If current date is between budgets start and end date, the budget is still active.
                 List<Budget> activeBudgets = budgetService.findActiveBudgetsForUserAndCategory(category, now, now);
                 for (Budget activeBudget : activeBudgets) {
                     double cost = repository.sumAmountByUserAndCategoryAndTimeBetweenAndType(user, category,
                             activeBudget.getStartDate(), activeBudget.getEndDate(), TransactionType.COST);
-                    if (cost < activeBudget.getAmount()) {
+                    if ((cost + dto.amount()) < activeBudget.getAmount()) {
                         continue;
                     }
                     eventPublisher.publishEvent(new BudgetExceededEvent(username, cost, activeBudget));
