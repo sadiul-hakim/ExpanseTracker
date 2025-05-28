@@ -10,12 +10,16 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import xyz.sadiulhakim.budget.Budget;
+import xyz.sadiulhakim.budget.BudgetService;
 import xyz.sadiulhakim.category.CategoryService;
+import xyz.sadiulhakim.event.BudgetExceededEvent;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
 import xyz.sadiulhakim.transaction.pojo.CategoryTypeSummery;
 import xyz.sadiulhakim.transaction.pojo.TypeSummery;
@@ -30,27 +34,49 @@ public class TransactionService {
     private final TransactionRepository repository;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final BudgetService budgetService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TransactionService(TransactionRepository repository, UserService userService,
-                              CategoryService categoryService) {
+                              CategoryService categoryService, BudgetService budgetService, ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.userService = userService;
         this.categoryService = categoryService;
+        this.budgetService = budgetService;
+        this.eventPublisher = eventPublisher;
     }
 
     public void save(TransactionDTO dto) {
 
-        // Use the current userId
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        var user = userService.findByEmail(username);
+        try {
+            // Use the current userId
+            var username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var user = userService.findByEmail(username);
+            var category = categoryService.findModelById(dto.categoryId());
+            var type = TransactionType.get(dto.type());
 
-        var type = TransactionType.get(dto.type());
-        var currency = Currency.get(dto.currency());
+            LocalDateTime now = LocalDateTime.now();
 
-        var category = categoryService.findModelById(dto.categoryId());
-        var transaction = new Transaction(user, dto.amount(), type, currency, dto.description(), category,
-                LocalDateTime.now());
-        repository.save(transaction);
+            // Check for Budget
+            if (type.equals(TransactionType.COST)) {
+                List<Budget> activeBudgets = budgetService.findActiveBudgetsForUserAndCategory(category, now, now);
+                for (Budget activeBudget : activeBudgets) {
+                    double cost = repository.sumAmountByUserAndCategoryAndTimeBetweenAndType(user, category,
+                            activeBudget.getStartDate(), activeBudget.getEndDate(), TransactionType.COST);
+                    if (cost < activeBudget.getAmount()) {
+                        continue;
+                    }
+                    eventPublisher.publishEvent(new BudgetExceededEvent(username, cost, activeBudget));
+                }
+            }
+
+            var currency = Currency.get(dto.currency());
+            var transaction = new Transaction(user, dto.amount(), type, currency, dto.description(), category, now);
+            repository.save(transaction);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to save transaction of user {} of category {} of amount {}", dto.userId(),
+                    dto.categoryId(), dto.amount());
+        }
     }
 
     public List<TransactionDTO> findAllTransactionsOfUser(int pageNumber, int pageSize) {

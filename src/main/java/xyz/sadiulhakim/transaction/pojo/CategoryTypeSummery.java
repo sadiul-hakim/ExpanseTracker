@@ -1,6 +1,5 @@
 package xyz.sadiulhakim.transaction.pojo;
 
-import xyz.sadiulhakim.category.Category;
 import xyz.sadiulhakim.transaction.Currency;
 import xyz.sadiulhakim.transaction.TransactionType;
 

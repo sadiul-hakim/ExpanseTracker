@@ -38,8 +38,6 @@ public class Transaction {
 
 	@Enumerated(EnumType.STRING)
 	private Currency currency;
-
-	@Column(length = 255)
 	private String description;
 	
 	@ManyToOne

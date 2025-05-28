@@ -1,10 +1,7 @@
 package xyz.sadiulhakim.transaction;
 
-import java.util.List;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import xyz.sadiulhakim.category.Category;
@@ -13,6 +10,7 @@ import xyz.sadiulhakim.transaction.pojo.TypeSummery;
 import xyz.sadiulhakim.user.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
@@ -46,7 +44,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     // Make a summery by category and type of transaction by user and date
     @Query("""
-            SELECT new xyz.sadiulhakim.transaction.pojo.CategoryTypeSummery(t.category.name, t.type,t.currency, SUM(t.amount))
+            SELECT new xyz.sadiulhakim.transaction.pojo.CategoryTypeSummery(t.category.name, t.type,t.currency,SUM(t.amount))
                 FROM Transaction t
                 WHERE t.user = :user and t.time between :startDate and :endDate
                 GROUP BY t.category, t.type, t.currency
@@ -65,4 +63,20 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<TypeSummery> getSummedAmountByUserType(
             @Param("user") User user, @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+    @Query("""
+                SELECT SUM(t.amount) FROM Transaction t
+                WHERE t.user = :user
+                  AND t.category = :category
+                  AND t.time BETWEEN :startDate AND :endDate
+                  AND t.type = :type
+            """)
+    double sumAmountByUserAndCategoryAndTimeBetweenAndType(
+            @Param("user") User user,
+            @Param("category") Category category,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("type") TransactionType type
+    );
+
 }
