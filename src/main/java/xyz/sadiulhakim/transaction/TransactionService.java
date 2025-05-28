@@ -3,7 +3,10 @@ package xyz.sadiulhakim.transaction;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityNotFoundException;
 import xyz.sadiulhakim.category.CategoryService;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
+import xyz.sadiulhakim.transaction.pojo.CategoryTypeSummery;
+import xyz.sadiulhakim.transaction.pojo.TypeSummery;
 import xyz.sadiulhakim.user.UserService;
 
 @Service
@@ -190,5 +195,29 @@ public class TransactionService {
     private TransactionDTO convertToDto(Transaction trans) {
         return new TransactionDTO(trans.getUser().getId(), trans.getCategory().getId(), trans.getAmount(),
                 trans.getType().getName(), trans.getCurrency().getIsoCode(), trans.getDescription(), trans.getTime());
+    }
+
+    public Map<String, Object> report(LocalDateTime startDate, LocalDateTime endDate) {
+
+        LocalDateTime today = LocalDateTime.now();
+        if (startDate == null) {
+            startDate = today.withDayOfMonth(1);
+        }
+
+        if (endDate == null) {
+            endDate = today.with(TemporalAdjusters.lastDayOfMonth());
+        }
+
+        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        var user = userService.findByEmail(username);
+
+        List<CategoryTypeSummery> categoryWise = repository.getSummedAmountsByUserCategoryAndType(
+                user, startDate, endDate);
+        List<TypeSummery> typeWise = repository.getSummedAmountByUserType(user, startDate, endDate);
+
+        Map<String, Object> report = new HashMap<>();
+        report.put("summedByCategory", categoryWise);
+        report.put("summedByType", typeWise);
+        return report;
     }
 }
