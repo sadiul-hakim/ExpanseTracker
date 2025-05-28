@@ -38,7 +38,8 @@ public class TransactionService {
     private final ApplicationEventPublisher eventPublisher;
 
     public TransactionService(TransactionRepository repository, UserService userService,
-                              CategoryService categoryService, BudgetService budgetService, ApplicationEventPublisher eventPublisher) {
+                              CategoryService categoryService, BudgetService budgetService,
+                              ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
         this.userService = userService;
         this.categoryService = categoryService;
@@ -88,7 +89,8 @@ public class TransactionService {
         return transactions.stream().map(this::convertToDto).toList();
     }
 
-    public List<TransactionDTO> findAllTransactionsOfUserByType(String type, int pageNumber, int pageSize) {
+    public List<TransactionDTO> findAllTransactionsOfUserByType(
+            String type, int pageNumber, int pageSize) {
 
         // Use the current userId
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -98,8 +100,9 @@ public class TransactionService {
         return transactions.stream().map(this::convertToDto).toList();
     }
 
-    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrency(String type, String currency, int pageNumber,
-                                                                           int pageSize) {
+    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrency(
+            String type, String currency, int pageNumber,
+            int pageSize) {
 
         // Use the current userId
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -111,8 +114,9 @@ public class TransactionService {
         return transactions.stream().map(this::convertToDto).toList();
     }
 
-    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrency(String category, String type,
-                                                                                      String currency, int pageNumber, int pageSize) {
+    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrency(
+            String category, String type,
+            String currency, int pageNumber, int pageSize) {
 
         // Use the current userId
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -126,8 +130,9 @@ public class TransactionService {
         return transactions.stream().map(this::convertToDto).toList();
     }
 
-    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyAtATime(String type, String currency,
-                                                                                  LocalDateTime time, int pageNumber, int pageSize) {
+    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyAtATime(
+            String type, String currency,
+            LocalDateTime time, int pageNumber, int pageSize) {
 
         if (time == null) {
             time = LocalDateTime.now();
@@ -143,8 +148,9 @@ public class TransactionService {
         return transactions.stream().map(this::convertToDto).toList();
     }
 
-    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(String type, String currency,
-                                                                                       LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
+    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(
+            String type, String currency,
+            LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
 
         if (time1 == null) {
             time1 = LocalDate.now().atStartOfDay();
@@ -164,8 +170,9 @@ public class TransactionService {
         return transactions.stream().map(this::convertToDto).toList();
     }
 
-    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrencyBetweenTimes(String category,
-                                                                                                  String type, String currency, LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
+    public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrencyBetweenTimes(
+            String category,
+            String type, String currency, LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
 
         if (time1 == null) {
             time1 = LocalDate.now().atStartOfDay();
