@@ -1,5 +1,21 @@
 package xyz.sadiulhakim.transaction;
 
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import xyz.sadiulhakim.budget.Budget;
+import xyz.sadiulhakim.budget.BudgetService;
+import xyz.sadiulhakim.category.CategoryService;
+import xyz.sadiulhakim.event.BudgetEvent;
+import xyz.sadiulhakim.exception.UnsupportedActivityException;
+import xyz.sadiulhakim.transaction.pojo.CategoryTypeSummery;
+import xyz.sadiulhakim.transaction.pojo.TypeSummery;
+import xyz.sadiulhakim.user.UserService;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -7,23 +23,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import jakarta.persistence.EntityNotFoundException;
-import xyz.sadiulhakim.budget.Budget;
-import xyz.sadiulhakim.budget.BudgetService;
-import xyz.sadiulhakim.category.CategoryService;
-import xyz.sadiulhakim.event.BudgetExceededEvent;
-import xyz.sadiulhakim.exception.UnsupportedActivityException;
-import xyz.sadiulhakim.transaction.pojo.CategoryTypeSummery;
-import xyz.sadiulhakim.transaction.pojo.TypeSummery;
-import xyz.sadiulhakim.user.UserService;
 
 @Service
 public class TransactionService {
@@ -66,10 +65,11 @@ public class TransactionService {
                 for (Budget activeBudget : activeBudgets) {
                     double cost = repository.sumAmountByUserAndCategoryAndTimeBetweenAndType(user, category,
                             activeBudget.getStartDate(), activeBudget.getEndDate(), TransactionType.COST);
-                    if ((cost + dto.amount()) < activeBudget.getAmount()) {
+                    double percentage = (cost / activeBudget.getAmount()) * 100;
+                    if (percentage < 90) {
                         continue;
                     }
-                    eventPublisher.publishEvent(new BudgetExceededEvent(username, cost, activeBudget));
+                    eventPublisher.publishEvent(new BudgetEvent(username, cost, activeBudget, percentage));
                 }
             }
 
@@ -249,6 +249,8 @@ public class TransactionService {
         List<CategoryTypeSummery> categoryWise = repository.getSummedAmountsByUserCategoryAndType(
                 user, startDate, endDate);
         List<TypeSummery> typeWise = repository.getSummedAmountByUserType(user, startDate, endDate);
+
+        // TODO: add budgets
 
         Map<String, Object> report = new HashMap<>();
         report.put("summedByCategory", categoryWise);

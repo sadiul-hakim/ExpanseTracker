@@ -6,7 +6,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import xyz.sadiulhakim.budget.pojo.BudgetDTO;
 import xyz.sadiulhakim.category.Category;
+import xyz.sadiulhakim.category.CategoryDTO;
 import xyz.sadiulhakim.category.CategoryService;
+import xyz.sadiulhakim.exception.EntityNotFoundExecption;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
 import xyz.sadiulhakim.user.UserService;
 
@@ -60,14 +62,19 @@ public class BudgetService {
         return repository.findAllByUser(user);
     }
 
-    public List<Budget> findAllByCategory(Category category) {
+    public List<BudgetDTO> findAllByCategory(long categoryId) {
 
         // Use the current userId
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         var user = userService.findByEmail(username);
-        return repository.findAllByUserAndCategory(user, category);
+
+        Category category = categoryService.findModelById(categoryId);
+        List<Budget> budgets = repository.findAllByUserAndCategory(user, category);
+        return budgets.stream().map(this::convertToDTO).toList();
     }
 
+    // This method exposes Budget and Budget exposes User.
+    // So this method should not be used with controller.
     public List<Budget> findActiveBudgetsForUserAndCategory(Category category, LocalDateTime startDate,
                                                             LocalDateTime endDate) {
 
@@ -76,5 +83,44 @@ public class BudgetService {
         var user = userService.findByEmail(username);
         return repository.findAllByUserAndCategoryAndStartDateLessThanEqualAndEndDateGreaterThanEqual(user, category,
                 startDate, endDate);
+    }
+
+    public BudgetDTO convertToDTO(Budget budget) {
+        return new BudgetDTO(budget.getTitle(), budget.getCategory().getName(), budget.getUser().getId(),
+                budget.getAmount(), budget.getStartDate(), budget.getEndDate());
+    }
+
+    public boolean delete(long id) {
+
+        try {
+            Budget budget = repository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundExecption("Budget is not found with id " + id));
+            // Use the current userId
+            var username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var user = userService.findByEmail(username);
+            if (!user.equals(budget.getUser())) {
+                throw new UnsupportedActivityException("You are not allowed to delete this budget!");
+            }
+
+            repository.delete(budget);
+            return true;
+        } catch (Exception ex) {
+            LOGGER.error("Could not delete budget {}", id);
+            return false;
+        }
+    }
+
+    public boolean deleteAllByCategory(long categoryId) {
+        try {
+            var username = SecurityContextHolder.getContext().getAuthentication().getName();
+            var user = userService.findByEmail(username);
+            Category category = categoryService.findModelById(categoryId);
+            List<Budget> budgets = repository.findAllByUserAndCategory(user, category);
+            repository.deleteAll(budgets);
+            return true;
+        } catch (Exception ex) {
+            LOGGER.error("Could not delete budgets by category {}", categoryId);
+            return false;
+        }
     }
 }

@@ -14,6 +14,7 @@ public record BudgetDTO(
 
         @NotBlank
         String category,
+        long user,
 
         @PositiveOrZero
         double amount,
