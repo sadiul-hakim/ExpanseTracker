@@ -54,12 +54,13 @@ public class BudgetService {
         }
     }
 
-    public List<Budget> findAll() {
+    public List<BudgetDTO> findAll() {
 
         // Use the current userId
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         var user = userService.findByEmail(username);
-        return repository.findAllByUser(user);
+        List<Budget> budgets = repository.findAllByUser(user);
+        return budgets.stream().map(this::convertToDTO).toList();
     }
 
     public List<BudgetDTO> findAllByCategory(long categoryId) {
@@ -87,7 +88,7 @@ public class BudgetService {
 
     public BudgetDTO convertToDTO(Budget budget) {
         return new BudgetDTO(budget.getTitle(), budget.getCategory().getName(), budget.getUser().getId(),
-                budget.getAmount(), budget.getStartDate(), budget.getEndDate());
+                budget.getAmount(), budget.isExceeded(), budget.getStartDate(), budget.getEndDate());
     }
 
     public boolean delete(long id) {

@@ -18,6 +18,7 @@ public record BudgetDTO(
 
         @PositiveOrZero
         double amount,
+        boolean exceeded,
         LocalDateTime startDate,
         LocalDateTime endDate
 ) {

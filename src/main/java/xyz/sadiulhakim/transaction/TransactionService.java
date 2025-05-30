@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import xyz.sadiulhakim.budget.Budget;
 import xyz.sadiulhakim.budget.BudgetService;
+import xyz.sadiulhakim.budget.pojo.BudgetDTO;
 import xyz.sadiulhakim.category.CategoryService;
 import xyz.sadiulhakim.event.BudgetEvent;
 import xyz.sadiulhakim.exception.UnsupportedActivityException;
@@ -249,12 +250,12 @@ public class TransactionService {
         List<CategoryTypeSummery> categoryWise = repository.getSummedAmountsByUserCategoryAndType(
                 user, startDate, endDate);
         List<TypeSummery> typeWise = repository.getSummedAmountByUserType(user, startDate, endDate);
-
-        // TODO: add budgets
+        List<BudgetDTO> budgets = budgetService.findAll();
 
         Map<String, Object> report = new HashMap<>();
         report.put("summedByCategory", categoryWise);
         report.put("summedByType", typeWise);
+        report.put("budgets", budgets);
         return report;
     }
 }
