@@ -153,14 +153,14 @@ public class TransactionService {
 
     public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCurrencyBetweenTimes(
             String type, String currency,
-            LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
+            LocalDateTime startDate, LocalDateTime endDate, int pageNumber, int pageSize) {
 
-        if (time1 == null) {
-            time1 = LocalDate.now().atStartOfDay();
+        if (startDate == null) {
+            startDate = LocalDate.now().atStartOfDay();
         }
 
-        if (time2 == null) {
-            time2 = LocalDate.now().atTime(LocalTime.MAX);
+        if (endDate == null) {
+            endDate = LocalDate.now().atTime(LocalTime.MAX);
         }
 
         // Use the current userId
@@ -168,21 +168,21 @@ public class TransactionService {
         var user = userService.findByEmail(username);
         var typeEnum = TransactionType.get(type);
         var currencyEnum = Currency.get(currency);
-        var transactions = repository.findByTimeBetweenAndCurrencyAndUserAndType(time1, time2, currencyEnum, user,
+        var transactions = repository.findByTimeBetweenAndCurrencyAndUserAndType(startDate, endDate, currencyEnum, user,
                 typeEnum, PageRequest.of(pageNumber, pageSize));
         return transactions.stream().map(this::convertToDto).toList();
     }
 
     public List<TransactionDTO> findAllTransactionsOfUserByTypeAndCategoryAndCurrencyBetweenTimes(
             String category,
-            String type, String currency, LocalDateTime time1, LocalDateTime time2, int pageNumber, int pageSize) {
+            String type, String currency, LocalDateTime startDate, LocalDateTime endDate, int pageNumber, int pageSize) {
 
-        if (time1 == null) {
-            time1 = LocalDate.now().atStartOfDay();
+        if (startDate == null) {
+            startDate = LocalDate.now().atStartOfDay();
         }
 
-        if (time2 == null) {
-            time2 = LocalDate.now().atTime(LocalTime.MAX);
+        if (endDate == null) {
+            endDate = LocalDate.now().atTime(LocalTime.MAX);
         }
 
         // Use the current userId
@@ -191,7 +191,7 @@ public class TransactionService {
         var typeEnum = TransactionType.get(type);
         var currencyEnum = Currency.get(currency);
         var categoryModel = categoryService.findModelByName(category);
-        var transactions = repository.findByTimeBetweenAndCurrencyAndUserAndTypeAndCategory(time1, time2, currencyEnum,
+        var transactions = repository.findByTimeBetweenAndCurrencyAndUserAndTypeAndCategory(startDate, endDate, currencyEnum,
                 user, typeEnum, categoryModel, PageRequest.of(pageNumber, pageSize));
         return transactions.stream().map(this::convertToDto).toList();
     }

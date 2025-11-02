@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RefreshTokenService {
@@ -18,6 +19,7 @@ public class RefreshTokenService {
     }
 
     @Async("defaultTaskExecutor")
+    @Transactional
     public void save(String token, String username) {
         Optional<RefreshToken> tokenOpt = findByUsername(username);
         if (tokenOpt.isPresent()) {

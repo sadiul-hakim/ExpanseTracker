@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.sadiulhakim.refreshToken.RefreshTokenService;
 import xyz.sadiulhakim.util.JwtHelper;
 import xyz.sadiulhakim.util.ResponseUtility;
@@ -44,6 +45,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 	}
 
 	@Override
+	@Transactional
 	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
 			Authentication authentication) {
 
